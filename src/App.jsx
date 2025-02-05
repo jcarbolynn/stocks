@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Dropdown } from 'primereact/dropdown';
 import './App.css'
 
+import Output from './components/Output';
+import Input from './components/Input';
+
+
 function App() {
-  const api_key = "API_KEY";
-  const [stock, setStock] = useState("");
-  const [result, setResult] = useState(null);
+  const api_key = "";
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [buyDays, setBuyDays] = useState([]);
+  const [stock, setStock] = useState("");
 
   const url = `http://api.marketstack.com/v2/eod?access_key=${api_key}&symbols=${stock.code}&limit=30`
   // const url = `http://api.marketstack.com/v1/eod?access_key=${api_key}&symbols=AAPL`
@@ -17,7 +19,16 @@ function App() {
     try {
       const response = await fetch(url)
       const output = await response.text();
-      setResult(JSON.parse(output))
+      const parseResult = JSON.parse(output);
+      // setResult(parseResult)
+      // issues with state variable? need to check if result for it to work
+
+      printDates(parseResult)
+
+      // if (result) {
+      //   printDates(result)
+      // }
+
     } catch (error) {
       console.log(error)
       setError(error)
@@ -26,15 +37,7 @@ function App() {
     }
   }
 
-  const stocks = [
-    { name: 'Microsoft', code: 'MSFT' },
-    { name: 'Amazon', code: 'AMZN' },
-    { name: 'Netflix', code: 'NFLX' },
-    { name: 'Alphabet', code: 'GOOGL' },
-    { name: 'Nvidia', code: 'NVDA' }
-  ];    
-  
-  function printDates() {
+  function printDates(result) {
     const top_3 = []
 
     for (let i = 0; i < result.data.length; i++){
@@ -77,72 +80,28 @@ function App() {
   console.log(top_3_dates)
   setBuyDays(top_3_dates)
 
-    // top_3.forEach( day => {
-    //   console.log(today - day.i)
-    // })
-    // setBuyDays()
-
-    // result.data.forEach(day => {
-    //   const {index} = day;
-    //   const {open, close} = day.data;
-    //   const difference = close-open
-    //   console.log(difference)
-    //   top_3.push({index, difference});
-    //   // top_3.sort((a,b) => b.value - a.value)
-    // })
-
-    // result.map((day) => (
-    //   console.log(day.open);
-    //   console.log(day.close);
-    // ))
   }
 
   return (
     <>
-    <div className='StockSearch'>
-      <div className="dropdown-div">
-        <Dropdown
-          value={stock}
-          onChange={(e) => setStock(e.value)}
-          // onChange={(e) => console.log(e.value)}
-          options={stocks}
-          optionLabel="name" 
-          placeholder="Select a Stock"
-          className="dropdown"
-        />
+      <div className='StockSearch'>
+        <div className="dropdown-div">
 
-        <button
-          type="submit"
-          onClick={getStocks}
-          // disabled={true}
-          disabled={loading}
-        >Stocks!</button>
+          < Input stock={stock} setStock={setStock}/>
+    
+          <button
+            type="submit"
+            onClick={getStocks}
+            // disabled={true}
+            disabled={loading}
+          >Stocks!</button>
 
-        
-        <button
-          type="submit"
-          onClick={printDates}
-          // disabled={true}
-          disabled={loading}
-        >see dates</button>
+        </div>
+
+        < Output error={error} loading={loading} buyDays={buyDays} />
+
       </div>
-
-      <div className='dateOutput'>
-        {error && <div className="error-message">{error}</div>}
-
-          {loading ? (<div className="loading">Loading...</div>) : 
-            <div>
-              You should have bought this stock:
-
-              {buyDays.map((item, index) => (
-                <p key={index}>{item} </p>
-              ))}
-            </div>
-          }
-      </div>
-
-    </div>
-  </>
+    </>
   )
 }
 
